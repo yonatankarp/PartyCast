@@ -54,7 +54,12 @@ export const CombatantSchema = z.object({
   maxHp: z.number().int().min(1),
   tempHp: z.number().int().min(0).default(0),
   ac: z.number().int().min(0),
-  speed: z.number().int().min(0).default(30),
+  // No default: 25/30/35 are all common (halflings 25, dwarves 25, humans 30,
+  // tabaxi 30, monks 30+). A silent default would produce wrong-but-valid
+  // combatants Monte Carlo could mask for hours.
+  speed: z.number().int().min(0),
+  // Optional because monsters use CR rather than level; PCs always set it.
+  level: z.number().int().min(1).max(20).optional(),
   abilities: AbilityScoresSchema,
   saves: SavesSchema,
   skills: z.record(z.string(), z.number().int()).default({}),
@@ -62,8 +67,26 @@ export const CombatantSchema = z.object({
   damageImmunities: z.array(DamageTypeSchema).default([]),
   damageVulnerabilities: z.array(DamageTypeSchema).default([]),
   conditionImmunities: z.array(z.string()).default([]),
+  // Resource pools (spell slots, rage uses, channel divinity, hit dice, etc.).
+  // PC hit dice live here keyed by die size: 'hit-dice-d6', 'hit-dice-d8', ...
+  // Multi-classed PCs have multiple hit-dice entries.
   resources: z.record(ResourceKeySchema, ResourcePoolSchema).default({}),
-  actionIds: z.array(z.string().min(1)).default([]),
+  actionIds: z
+    .array(z.string().min(1))
+    .superRefine((items, ctx) => {
+      const seen = new Set<string>();
+      items.forEach((item, index) => {
+        if (seen.has(item)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `Duplicate action id "${item}"`,
+            path: [index],
+          });
+        }
+        seen.add(item);
+      });
+    })
+    .default([]),
   position: PositionSchema.optional(),
   conditions: z.array(ConditionSchema).default([]),
   concentration: ConcentrationSchema.nullable().default(null),
