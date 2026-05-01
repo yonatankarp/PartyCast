@@ -68,8 +68,35 @@ describe('AdventureSchema', () => {
           to: 'phandalin-arrived',
           condition: { kind: 'on-outcome', outcome: 'victory' },
         },
+        {
+          from: 'goblin-ambush',
+          to: 'phandalin-arrived',
+          condition: { kind: 'on-branch-option', optionId: 'fight' },
+        },
+        {
+          from: 'goblin-ambush',
+          to: 'phandalin-arrived',
+          condition: { kind: 'on-skill-result', result: 'success' },
+        },
       ],
     };
-    expect(AdventureSchema.parse(a).edges.length).toBe(2);
+    expect(AdventureSchema.parse(a).edges.length).toBe(4);
+  });
+
+  it('rejects an adventure with duplicate node ids', () => {
+    expect(
+      AdventureSchema.safeParse({
+        ...phandalin,
+        nodes: [
+          ...phandalin.nodes,
+          {
+            id: 'goblin-ambush',
+            kind: 'rest',
+            name: 'Duplicate',
+            restKind: 'short',
+          },
+        ],
+      }).success,
+    ).toBe(false);
   });
 });
