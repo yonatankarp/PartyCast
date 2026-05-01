@@ -51,6 +51,44 @@ describe('PersonaSchema', () => {
     expect(PersonaSchema.parse(p)).toMatchObject({ id: 'cautious-cleric' });
   });
 
+  it('accepts the spec V1 predicates: self-has-resource, party-has-role, combat-round-eq/gte', () => {
+    const p = {
+      ...cautiousCleric,
+      rules: [
+        {
+          condition: { kind: 'self-has-resource', resource: 'rage-uses', value: true },
+          actionMatch: { kind: 'tag', tag: 'tag:single-target-damage' },
+        },
+        {
+          condition: { kind: 'party-has-role', role: 'healer' },
+          actionMatch: { kind: 'tag', tag: 'weapon-attack' },
+        },
+        {
+          condition: { kind: 'combat-round-eq', round: 1 },
+          actionMatch: { kind: 'action-id', id: 'spell-bless' },
+        },
+        {
+          condition: { kind: 'combat-round-gte', round: 3 },
+          actionMatch: { kind: 'tag', tag: 'tag:aoe-damage' },
+        },
+      ],
+    };
+    expect(PersonaSchema.parse(p)).toMatchObject({ id: 'cautious-cleric' });
+  });
+
+  it('rejects party-has-role with unknown role', () => {
+    const p = {
+      ...cautiousCleric,
+      rules: [
+        {
+          condition: { kind: 'party-has-role', role: 'bard' },
+          actionMatch: { kind: 'tag', tag: 'tag:healing' },
+        },
+      ],
+    };
+    expect(PersonaSchema.safeParse(p).success).toBe(false);
+  });
+
   it('rejects unknown condition kind', () => {
     const p = {
       ...cautiousCleric,
