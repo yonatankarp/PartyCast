@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { TagSchema } from './primitives';
+import { PartyRoleSchema, ResourceKeySchema, TagSchema } from './primitives';
 
 const PersonaConditionSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('always') }),
@@ -9,12 +9,19 @@ const PersonaConditionSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('enemies-in-melee-gte'), count: z.number().int().min(1) }),
   z.object({ kind: z.literal('self-concentrating'), value: z.boolean() }),
   z.object({
+    kind: z.literal('self-has-resource'),
+    resource: ResourceKeySchema,
+    value: z.boolean(),
+  }),
+  z.object({
     kind: z.literal('slot-available'),
     level: z.number().int().min(1).max(9),
     count: z.number().int().min(1),
   }),
   z.object({ kind: z.literal('target-has-condition'), condition: z.string().min(1) }),
+  z.object({ kind: z.literal('combat-round-eq'), round: z.number().int().min(1) }),
   z.object({ kind: z.literal('combat-round-gte'), round: z.number().int().min(1) }),
+  z.object({ kind: z.literal('party-has-role'), role: PartyRoleSchema }),
 ]);
 export type PersonaCondition = z.infer<typeof PersonaConditionSchema>;
 

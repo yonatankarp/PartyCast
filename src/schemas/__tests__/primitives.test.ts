@@ -8,6 +8,7 @@ import {
   DamageTypeSchema,
   SizeSchema,
   CreatureTypeSchema,
+  PartyRoleSchema,
 } from '../primitives';
 
 describe('DiceExpressionSchema', () => {
@@ -134,5 +135,14 @@ describe('SizeSchema', () => {
 describe('CreatureTypeSchema', () => {
   it.each(['pc', 'monster'])('accepts %s', (s) => {
     expect(CreatureTypeSchema.parse(s)).toBe(s);
+  });
+});
+
+describe('PartyRoleSchema', () => {
+  it.each(['tank', 'healer', 'damage', 'utility'])('accepts %s', (s) => {
+    expect(PartyRoleSchema.parse(s)).toBe(s);
+  });
+  it('rejects unknown role', () => {
+    expect(PartyRoleSchema.safeParse('bard').success).toBe(false);
   });
 });

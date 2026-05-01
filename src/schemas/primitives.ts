@@ -58,3 +58,8 @@ export type Size = z.infer<typeof SizeSchema>;
 
 export const CreatureTypeSchema = z.enum(['pc', 'monster']);
 export type CreatureType = z.infer<typeof CreatureTypeSchema>;
+
+// Closed taxonomy used by the Random Party Generator for role-balance
+// heuristics and by personas via the `party-has-role` predicate.
+export const PartyRoleSchema = z.enum(['tank', 'healer', 'damage', 'utility']);
+export type PartyRole = z.infer<typeof PartyRoleSchema>;
