@@ -6,6 +6,10 @@ const ActionCostSchema = z.object({
   kind: z.enum(['action', 'bonus-action', 'reaction', 'free', 'movement', 'no-action']),
 });
 
+// Uses z.discriminatedUnion (not z.union like EffectSchema) because target
+// shapes don't recurse, so the lazy-recursion constraint that forced union
+// in effect.ts doesn't apply. Discriminated union gives precise path-aware
+// errors like `target.length: Required` for a malformed cone.
 const TargetShapeSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('single'), range: z.number().int().nonnegative() }),
   z.object({ kind: z.literal('multiple'), count: z.number().int().positive(), range: z.number().int().nonnegative() }),
@@ -40,6 +44,8 @@ const AttackSchema = z.object({
 export const ActionSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
+  // min(1) is load-bearing: actions are matched to personas by tag, so an
+  // action with no tags is unreachable content. Don't loosen to .default([]).
   tags: z.array(TagSchema).min(1),
   cost: ActionCostSchema,
   resourceCost: z
