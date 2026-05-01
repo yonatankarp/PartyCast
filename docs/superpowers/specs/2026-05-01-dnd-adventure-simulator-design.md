@@ -206,3 +206,4 @@ Schema correctness is gospel. If an engine agent finds a schema gap, the schema 
 - Exporting RunResults to CSV / JSON for offline analysis.
 - "Compare two persona configs" diff view in stats dashboard.
 - Levels 11-20 SRD-equivalent content beyond what SRD 5.2 ships.
+- **`MovementEffect` direction encoding.** V1 schema uses `direction: 'forced' | 'free'` (who decides) and a signed `distance` (no bound). 5.5e mechanically distinguishes push (away from source), pull (toward source), shove (either, attacker chooses), and slide (any direction, attacker chooses). The V1 binary is sufficient to typecheck the schema but does not carry enough information for the engine to apply forced movement unambiguously. Expand to a discriminant (e.g. `kind: 'push' | 'pull' | 'slide' | 'free-move'`) before the combat engine implements forced movement, or before authoring SRD content that uses it.
