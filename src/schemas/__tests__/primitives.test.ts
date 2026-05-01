@@ -9,6 +9,7 @@ import {
   SizeSchema,
   CreatureTypeSchema,
   PartyRoleSchema,
+  PositionSchema,
 } from '../primitives';
 
 describe('DiceExpressionSchema', () => {
@@ -144,5 +145,21 @@ describe('PartyRoleSchema', () => {
   });
   it('rejects unknown role', () => {
     expect(PartyRoleSchema.safeParse('bard').success).toBe(false);
+  });
+});
+
+describe('PositionSchema', () => {
+  it('accepts integer coordinates including zero and negative', () => {
+    expect(PositionSchema.parse({ x: 0, y: 0 })).toEqual({ x: 0, y: 0 });
+    expect(PositionSchema.parse({ x: -5, y: 10 })).toEqual({ x: -5, y: 10 });
+  });
+  it.each([
+    ['non-integer-x', { x: 0.5, y: 0 }],
+    ['non-integer-y', { x: 0, y: 1.5 }],
+    ['missing-y', { x: 0 }],
+    ['missing-x', { y: 0 }],
+    ['empty', {}],
+  ])('rejects %s', (_label, value) => {
+    expect(PositionSchema.safeParse(value).success).toBe(false);
   });
 });

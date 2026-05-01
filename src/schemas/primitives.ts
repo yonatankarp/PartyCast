@@ -63,3 +63,11 @@ export type CreatureType = z.infer<typeof CreatureTypeSchema>;
 // heuristics and by personas via the `party-has-role` predicate.
 export const PartyRoleSchema = z.enum(['tank', 'healer', 'damage', 'utility']);
 export type PartyRole = z.infer<typeof PartyRoleSchema>;
+
+// Integer grid coordinates. Used by combatants on the combat grid and by
+// adventure-node terrain/start-position layouts.
+export const PositionSchema = z.object({
+  x: z.number().int(),
+  y: z.number().int(),
+});
+export type Position = z.infer<typeof PositionSchema>;
