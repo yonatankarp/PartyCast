@@ -92,6 +92,57 @@ describe('AdventureNodeSchema', () => {
     ).toMatchObject({ kind: 'custom' });
   });
 
+  it('accepts a SkillCheck node in contested mode', () => {
+    expect(
+      AdventureNodeSchema.parse({
+        id: 'arm-wrestle',
+        kind: 'skill-check',
+        name: 'Arm Wrestle',
+        ability: 'str',
+        dc: 1,
+        mode: 'contested',
+      }),
+    ).toMatchObject({ kind: 'skill-check', mode: 'contested' });
+  });
+
+  it('rejects branch options whose weights do not sum to 1', () => {
+    expect(
+      AdventureNodeSchema.safeParse({
+        id: 'bad-branch',
+        kind: 'branch',
+        name: 'Bad Branch',
+        options: [
+          { id: 'a', label: 'A', weight: 0.6 },
+          { id: 'b', label: 'B', weight: 0.6 },
+        ],
+      }).success,
+    ).toBe(false);
+  });
+
+  it('rejects travel hours of zero', () => {
+    expect(
+      AdventureNodeSchema.safeParse({
+        id: 'travel-zero',
+        kind: 'travel',
+        name: 'Zero Hours',
+        hours: 0,
+      }).success,
+    ).toBe(false);
+  });
+
+  it('rejects oversized terrain', () => {
+    expect(
+      AdventureNodeSchema.safeParse({
+        id: 'huge-map',
+        kind: 'combat',
+        name: 'Huge Map',
+        monsters: [{ combatantTemplateId: 'goblin', count: 1 }],
+        partyStartPositions: [{ x: 0, y: 0 }],
+        terrain: { width: 500, height: 500, features: [] },
+      }).success,
+    ).toBe(false);
+  });
+
   it('rejects unknown kind', () => {
     expect(AdventureNodeSchema.safeParse({ id: 'x', kind: 'mystery', name: 'x' }).success).toBe(
       false,

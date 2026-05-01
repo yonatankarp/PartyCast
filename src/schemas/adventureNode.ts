@@ -21,9 +21,12 @@ const CombatNodeSchema = z.object({
     )
     .min(1),
   partyStartPositions: z.array(PositionSchema).min(1),
+  // 100x100 cap is generous: largest published 5e battle maps top out around
+  // 60x60. Bigger grids in Monte Carlo would OOM workers without paying off
+  // any real authoring use case.
   terrain: z.object({
-    width: z.number().int().min(1),
-    height: z.number().int().min(1),
+    width: z.number().int().min(1).max(100),
+    height: z.number().int().min(1).max(100),
     features: z.array(TerrainFeatureSchema).default([]),
   }),
 });
@@ -36,9 +39,12 @@ const SkillCheckNodeSchema = z.object({
   ability: AbilityScoreSchema,
   skill: z.string().optional(),
   dc: z.number().int().min(1),
-  mode: z.enum(['single', 'group']),
+  mode: z.enum(['single', 'group', 'contested']),
 });
 
+// Option weights are probabilities: must sum to 1 (within float epsilon).
+// Catches the "two options at 0.6 each" authoring bug at parse time instead
+// of letting Monte Carlo silently sample a non-distribution.
 const BranchNodeSchema = z.object({
   id: z.string().min(1),
   kind: z.literal('branch'),
@@ -52,7 +58,16 @@ const BranchNodeSchema = z.object({
         weight: z.number().min(0).max(1),
       }),
     )
-    .min(2),
+    .min(2)
+    .superRefine((options, ctx) => {
+      const sum = options.reduce((acc, o) => acc + o.weight, 0);
+      if (Math.abs(sum - 1) > 1e-9) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Branch option weights must sum to 1 (got ${sum})`,
+        });
+      }
+    }),
 });
 
 const RestNodeSchema = z.object({
@@ -68,6 +83,8 @@ const LootNodeSchema = z.object({
   kind: z.literal('loot'),
   name: z.string().min(1),
   description: z.string().default(''),
+  // itemId resolved against the item catalog when that schema lands
+  // (deferred past Phase 1; matches Combatant.equipment).
   items: z
     .array(z.object({ itemId: z.string().min(1), amount: z.number().int().min(1) }))
     .min(1),
@@ -79,7 +96,7 @@ const TravelNodeSchema = z.object({
   kind: z.literal('travel'),
   name: z.string().min(1),
   description: z.string().default(''),
-  hours: z.number().min(0),
+  hours: z.number().positive(),
   exhaustionCheck: z.boolean().default(false),
   randomEncounters: z
     .array(
@@ -96,9 +113,16 @@ const CustomNodeSchema = z.object({
   kind: z.literal('custom'),
   name: z.string().min(1),
   description: z.string().default(''),
-  script: z.string().min(1),
+  // Script body validated structurally only. Semantic checks happen at
+  // Worker load time per the spec's sandbox contract (no DOM, no network,
+  // no storage). 100KB cap is generous for any legitimate authoring use.
+  script: z.string().min(1).max(100_000),
 });
 
+// Uses z.discriminatedUnion (not z.union like EffectSchema) because nodes
+// don't recurse - cross-node references are by ID, not by embedding - so
+// the lazy-recursion constraint that forced union in effect.ts doesn't
+// apply. Discriminated union gives precise path-aware errors.
 export const AdventureNodeSchema = z.discriminatedUnion('kind', [
   CombatNodeSchema,
   SkillCheckNodeSchema,
