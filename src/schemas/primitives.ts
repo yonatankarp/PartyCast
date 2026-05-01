@@ -18,6 +18,15 @@ export const ResourceKeySchema = z
   .regex(/^[a-z][a-z0-9-]*$/, 'Resource keys must be lowercase kebab-case');
 export type ResourceKey = z.infer<typeof ResourceKeySchema>;
 
+// Distinct domain concept from ResourceKey/Tag despite the shared shape:
+// rule tags are interpreted by the engine to apply mechanical effects of
+// a condition (e.g. "attack-rolls-disadvantage"), whereas Tag identifies
+// actions for persona matching and ResourceKey names a resource bucket.
+export const RuleTagSchema = z
+  .string()
+  .regex(/^[a-z][a-z0-9-]*$/, 'Rule tags must be lowercase kebab-case');
+export type RuleTag = z.infer<typeof RuleTagSchema>;
+
 export const AbilityScoreSchema = z.enum(['str', 'dex', 'con', 'int', 'wis', 'cha']);
 export type AbilityScore = z.infer<typeof AbilityScoreSchema>;
 

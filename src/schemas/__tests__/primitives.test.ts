@@ -3,6 +3,7 @@ import {
   DiceExpressionSchema,
   TagSchema,
   ResourceKeySchema,
+  RuleTagSchema,
   AbilityScoreSchema,
   DamageTypeSchema,
   SizeSchema,
@@ -64,6 +65,23 @@ describe('ResourceKeySchema', () => {
     ['empty', ''],
   ])('rejects %s (%s)', (_label, s) => {
     expect(ResourceKeySchema.safeParse(s).success).toBe(false);
+  });
+});
+
+describe('RuleTagSchema', () => {
+  it.each(['attack-rolls-disadvantage', 'attacker-melee-advantage', 'death-save-fail'])(
+    'accepts %s',
+    (s) => {
+      expect(RuleTagSchema.parse(s)).toBe(s);
+    },
+  );
+  it.each([
+    ['uppercase', 'Attack-Rolls'],
+    ['leading-digit', '1-rule'],
+    ['contains-space', 'has space'],
+    ['empty', ''],
+  ])('rejects %s (%s)', (_label, s) => {
+    expect(RuleTagSchema.safeParse(s).success).toBe(false);
   });
 });
 
