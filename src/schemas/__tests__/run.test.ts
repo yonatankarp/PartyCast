@@ -108,6 +108,26 @@ describe('RunResultSchema', () => {
     ).toBe('completed');
   });
 
+  it('rejects duplicate ids in deaths', () => {
+    expect(
+      RunResultSchema.safeParse({
+        runId: 'run-0001',
+        seed: 'master:1',
+        adventureId: 'phandalin-mini',
+        partyId: 'party-1',
+        outcome: 'victory',
+        deaths: ['goblin-1', 'goblin-1'],
+        nodePath: ['goblin-ambush'],
+        events: [
+          { kind: 'death', roundIndex: 1, combatantId: 'goblin-1' },
+          { kind: 'death', roundIndex: 2, combatantId: 'goblin-1' },
+        ],
+        finalParty: [],
+        rounds: 3,
+      }).success,
+    ).toBe(false);
+  });
+
   it('rejects when deaths and death-events disagree', () => {
     expect(
       RunResultSchema.safeParse({

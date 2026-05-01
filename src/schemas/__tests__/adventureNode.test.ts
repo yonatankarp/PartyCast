@@ -105,6 +105,20 @@ describe('AdventureNodeSchema', () => {
     ).toMatchObject({ kind: 'skill-check', mode: 'contested' });
   });
 
+  it('rejects branch options with duplicate ids', () => {
+    expect(
+      AdventureNodeSchema.safeParse({
+        id: 'dup-options',
+        kind: 'branch',
+        name: 'Dup',
+        options: [
+          { id: 'choose', label: 'A', weight: 0.5 },
+          { id: 'choose', label: 'B', weight: 0.5 },
+        ],
+      }).success,
+    ).toBe(false);
+  });
+
   it('rejects branch options whose weights do not sum to 1', () => {
     expect(
       AdventureNodeSchema.safeParse({

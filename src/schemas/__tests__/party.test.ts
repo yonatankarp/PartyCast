@@ -11,6 +11,7 @@ const baseCombatant = {
   tempHp: 0,
   ac: 12,
   speed: 30,
+  level: 5,
   abilities: { str: 8, dex: 14, con: 14, int: 16, wis: 12, cha: 10 },
   saves: { str: -1, dex: 2, con: 4, int: 5, wis: 1, cha: 0 },
   skills: {},

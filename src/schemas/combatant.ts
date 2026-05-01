@@ -90,11 +90,24 @@ export const CombatantSchema = z.object({
   // Equipment IDs; resolved against the item catalog when that schema lands
   // (deferred past Phase 1).
   equipment: z.array(z.string().min(1)).default([]),
-})
-  .refine((v) => v.hp <= v.maxHp, {
-    message: 'hp must be <= maxHp',
-    path: ['hp'],
-  });
+}).superRefine((v, ctx) => {
+  if (v.hp > v.maxHp) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'hp must be <= maxHp',
+      path: ['hp'],
+    });
+  }
+  // PCs always carry a level (1-20). Monsters use CR which lives outside
+  // this schema, so level is allowed absent for them.
+  if (v.type === 'pc' && v.level === undefined) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'level is required when type is "pc"',
+      path: ['level'],
+    });
+  }
+});
 export type Combatant = z.infer<typeof CombatantSchema>;
 export type AbilityScores = z.infer<typeof AbilityScoresSchema>;
 export type Saves = z.infer<typeof SavesSchema>;

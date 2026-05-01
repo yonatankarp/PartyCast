@@ -11,17 +11,22 @@ export type DiceExpression = z.infer<typeof DiceExpressionSchema>;
 // `tag:` prefix is optional: prefixed forms (`tag:healing`) are persona-matching
 // classifications; bare forms (`weapon-attack`, `dash`) are built-in SRD action
 // categories. Both share the kebab-case shape and live under a single primitive.
+// The regex enforces strict kebab-case: no leading/trailing/consecutive dashes
+// (so `tag:foo-` and `foo--bar` both fail).
 export const TagSchema = z
   .string()
   .regex(
-    /^(tag:)?[a-z][a-z0-9-]*$/,
+    /^(tag:)?[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/,
     'Tags must be lowercase kebab-case, optionally prefixed with "tag:"',
   );
 export type Tag = z.infer<typeof TagSchema>;
 
 export const ResourceKeySchema = z
   .string()
-  .regex(/^[a-z][a-z0-9-]*$/, 'Resource keys must be lowercase kebab-case');
+  .regex(
+    /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/,
+    'Resource keys must be lowercase kebab-case',
+  );
 export type ResourceKey = z.infer<typeof ResourceKeySchema>;
 
 // Distinct domain concept from ResourceKey/Tag despite the shared shape:
@@ -30,7 +35,10 @@ export type ResourceKey = z.infer<typeof ResourceKeySchema>;
 // actions for persona matching and ResourceKey names a resource bucket.
 export const RuleTagSchema = z
   .string()
-  .regex(/^[a-z][a-z0-9-]*$/, 'Rule tags must be lowercase kebab-case');
+  .regex(
+    /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/,
+    'Rule tags must be lowercase kebab-case',
+  );
 export type RuleTag = z.infer<typeof RuleTagSchema>;
 
 export const AbilityScoreSchema = z.enum(['str', 'dex', 'con', 'int', 'wis', 'cha']);
