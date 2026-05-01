@@ -42,13 +42,15 @@ describe('CombatantSchema', () => {
       ac: 12,
       abilities: { str: 8, dex: 14, con: 14, int: 16, wis: 12, cha: 10 },
       saves: { str: -1, dex: 2, con: 4, int: 5, wis: 1, cha: 0 },
+      level: 5,
       resources: {
         'spell-slot-1': { current: 4, max: 4 },
         'spell-slot-2': { current: 3, max: 3 },
+        'hit-dice-d6': { current: 5, max: 5 },
       },
       actionIds: ['weapon-quarterstaff', 'spell-fire-bolt', 'spell-magic-missile'],
     };
-    expect(CombatantSchema.parse(wizard)).toMatchObject({ type: 'pc' });
+    expect(CombatantSchema.parse(wizard)).toMatchObject({ type: 'pc', level: 5 });
   });
 
   it('rejects negative HP', () => {
@@ -75,5 +77,27 @@ describe('CombatantSchema', () => {
         resources: { 'rage-uses': { current: 5, max: 2 } },
       }).success,
     ).toBe(false);
+  });
+
+  it.each([
+    ['below-min', 0],
+    ['above-max', 21],
+    ['non-integer', 4.5],
+  ])('rejects level %s (%s)', (_label, level) => {
+    expect(CombatantSchema.safeParse({ ...goblin, level }).success).toBe(false);
+  });
+
+  it('rejects duplicate actionIds', () => {
+    expect(
+      CombatantSchema.safeParse({
+        ...goblin,
+        actionIds: ['weapon-shortbow', 'weapon-shortbow'],
+      }).success,
+    ).toBe(false);
+  });
+
+  it('rejects a combatant with no speed', () => {
+    const { speed: _speed, ...withoutSpeed } = goblin;
+    expect(CombatantSchema.safeParse(withoutSpeed).success).toBe(false);
   });
 });
