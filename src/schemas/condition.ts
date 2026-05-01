@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { RuleTagSchema } from './primitives';
 
 export const SRD_CONDITION_IDS = [
   'blinded',
@@ -19,17 +20,25 @@ export const SRD_CONDITION_IDS = [
 ] as const;
 export type SrdConditionId = (typeof SRD_CONDITION_IDS)[number];
 
-export const ConditionSchema = z.object({
+// `id` is intentionally a free string (not z.enum(SRD_CONDITION_IDS)) so
+// homebrew conditions are first-class. Reference validity (does an
+// `apply-condition` effect or active condition resolve in the catalog?) is
+// enforced by cross-validation at content-load time, not at the schema layer.
+export const ConditionDefinitionSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
   description: z.string().min(1),
-  rules: z.array(z.string()).default([]),
+  rules: z.array(RuleTagSchema).default([]),
 });
-export type Condition = z.infer<typeof ConditionSchema>;
+export type ConditionDefinition = z.infer<typeof ConditionDefinitionSchema>;
 
-export const ActiveConditionSchema = z.object({
+// Instance of a condition currently affecting a combatant. `level` exists
+// for stacking conditions like 5.5e exhaustion (1-6); other conditions
+// leave it absent.
+export const ConditionSchema = z.object({
   id: z.string().min(1),
+  level: z.number().int().min(1).max(6).optional(),
   duration: z.string().optional(),
   sourceId: z.string().optional(),
 });
-export type ActiveCondition = z.infer<typeof ActiveConditionSchema>;
+export type Condition = z.infer<typeof ConditionSchema>;
