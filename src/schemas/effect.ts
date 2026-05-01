@@ -1,0 +1,82 @@
+import { z } from 'zod';
+import { AbilityScoreSchema, DamageTypeSchema, DiceExpressionSchema, ResourceKeySchema } from './primitives';
+
+const DamageEffectSchema = z.object({
+  kind: z.literal('damage'),
+  amount: DiceExpressionSchema,
+  damageType: DamageTypeSchema,
+});
+
+const HealEffectSchema = z.object({
+  kind: z.literal('heal'),
+  amount: DiceExpressionSchema,
+});
+
+const ApplyConditionEffectSchema = z.object({
+  kind: z.literal('apply-condition'),
+  condition: z.string().min(1),
+  duration: z.string().optional(),
+});
+
+const RemoveConditionEffectSchema = z.object({
+  kind: z.literal('remove-condition'),
+  condition: z.string().min(1),
+});
+
+const ResourceCostEffectSchema = z.object({
+  kind: z.literal('resource-cost'),
+  resource: ResourceKeySchema,
+  amount: z.number().int().positive(),
+});
+
+const MovementEffectSchema = z.object({
+  kind: z.literal('movement'),
+  distance: z.number().int(),
+  direction: z.enum(['forced', 'free']),
+});
+
+export type DamageEffect = z.infer<typeof DamageEffectSchema>;
+export type HealEffect = z.infer<typeof HealEffectSchema>;
+export type ApplyConditionEffect = z.infer<typeof ApplyConditionEffectSchema>;
+export type RemoveConditionEffect = z.infer<typeof RemoveConditionEffectSchema>;
+export type ResourceCostEffect = z.infer<typeof ResourceCostEffectSchema>;
+export type MovementEffect = z.infer<typeof MovementEffectSchema>;
+
+export interface SaveOrSuckEffect {
+  kind: 'save-or-suck';
+  ability: z.infer<typeof AbilityScoreSchema>;
+  dc: number;
+  onFail: Effect;
+  onSuccess?: Effect | undefined;
+}
+
+export type Effect =
+  | DamageEffect
+  | HealEffect
+  | ApplyConditionEffect
+  | RemoveConditionEffect
+  | ResourceCostEffect
+  | MovementEffect
+  | SaveOrSuckEffect;
+
+const SaveOrSuckEffectSchema: z.ZodType<SaveOrSuckEffect> = z.lazy(() =>
+  z.object({
+    kind: z.literal('save-or-suck'),
+    ability: AbilityScoreSchema,
+    dc: z.number().int().min(1),
+    onFail: EffectSchema,
+    onSuccess: EffectSchema.optional(),
+  }),
+);
+
+export const EffectSchema: z.ZodType<Effect> = z.lazy(() =>
+  z.union([
+    DamageEffectSchema,
+    HealEffectSchema,
+    ApplyConditionEffectSchema,
+    RemoveConditionEffectSchema,
+    ResourceCostEffectSchema,
+    MovementEffectSchema,
+    SaveOrSuckEffectSchema,
+  ]),
+);
