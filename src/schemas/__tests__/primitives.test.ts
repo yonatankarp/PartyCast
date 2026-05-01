@@ -10,10 +10,24 @@ import {
 } from '../primitives';
 
 describe('DiceExpressionSchema', () => {
-  it.each(['1d20', '3d6', '2d8+5', '1d4-1', '4d6+12'])('accepts %s', (s) => {
-    expect(DiceExpressionSchema.parse(s)).toBe(s);
-  });
-  it.each(['', 'd20', '1d', '3d6+', '1d20*2', 'foo'])('rejects %s', (s) => {
+  it.each(['1d4', '1d6', '1d8', '1d10', '1d12', '1d20', '1d100', '3d6+5', '2d8-1', '4d6+12'])(
+    'accepts %s',
+    (s) => {
+      expect(DiceExpressionSchema.parse(s)).toBe(s);
+    },
+  );
+  it.each([
+    ['empty', ''],
+    ['no-count', 'd20'],
+    ['no-sides', '1d'],
+    ['trailing-plus', '3d6+'],
+    ['bad-operator', '1d20*2'],
+    ['non-numeric', 'foo'],
+    ['zero-count', '0d20'],
+    ['leading-zero-count', '01d20'],
+    ['non-dnd-die-d7', '1d7'],
+    ['non-dnd-die-d2', '1d2'],
+  ])('rejects %s (%s)', (_label, s) => {
     expect(DiceExpressionSchema.safeParse(s).success).toBe(false);
   });
 });
@@ -25,12 +39,15 @@ describe('TagSchema', () => {
       expect(TagSchema.parse(s)).toBe(s);
     },
   );
-  it.each(['healing', 'tag:', 'tag:Healing', 'tag:_under', 'tag:has space'])(
-    'rejects %s',
-    (s) => {
-      expect(TagSchema.safeParse(s).success).toBe(false);
-    },
-  );
+  it.each([
+    ['no-prefix', 'healing'],
+    ['empty-body', 'tag:'],
+    ['uppercase', 'tag:Healing'],
+    ['leading-underscore', 'tag:_under'],
+    ['contains-space', 'tag:has space'],
+  ])('rejects %s (%s)', (_label, s) => {
+    expect(TagSchema.safeParse(s).success).toBe(false);
+  });
 });
 
 describe('ResourceKeySchema', () => {
@@ -40,7 +57,12 @@ describe('ResourceKeySchema', () => {
       expect(ResourceKeySchema.parse(s)).toBe(s);
     },
   );
-  it.each(['Spell-Slot', '1-leading-digit', 'has space', ''])('rejects %s', (s) => {
+  it.each([
+    ['uppercase', 'Spell-Slot'],
+    ['leading-digit', '1-leading-digit'],
+    ['contains-space', 'has space'],
+    ['empty', ''],
+  ])('rejects %s (%s)', (_label, s) => {
     expect(ResourceKeySchema.safeParse(s).success).toBe(false);
   });
 });
