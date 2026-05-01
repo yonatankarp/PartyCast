@@ -12,7 +12,10 @@ const ResourcePoolSchema = z
     current: z.number().int().min(0),
     max: z.number().int().min(0),
   })
-  .refine((v) => v.current <= v.max, { message: 'current must be <= max' });
+  .refine((v) => v.current <= v.max, {
+    message: 'current must be <= max',
+    path: ['current'],
+  });
 
 const PositionSchema = z.object({
   x: z.number().int(),
@@ -64,8 +67,14 @@ export const CombatantSchema = z.object({
   position: PositionSchema.optional(),
   conditions: z.array(ConditionSchema).default([]),
   concentration: ConcentrationSchema.nullable().default(null),
+  // Equipment IDs; resolved against the item catalog when that schema lands
+  // (deferred past Phase 1).
   equipment: z.array(z.string()).default([]),
-});
+})
+  .refine((v) => v.hp <= v.maxHp, {
+    message: 'hp must be <= maxHp',
+    path: ['hp'],
+  });
 export type Combatant = z.infer<typeof CombatantSchema>;
 export type AbilityScores = z.infer<typeof AbilityScoresSchema>;
 export type Saves = z.infer<typeof SavesSchema>;

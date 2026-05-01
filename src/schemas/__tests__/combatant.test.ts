@@ -64,6 +64,10 @@ describe('CombatantSchema', () => {
     ).toBe(false);
   });
 
+  it('rejects hp greater than maxHp', () => {
+    expect(CombatantSchema.safeParse({ ...goblin, hp: 100, maxHp: 7 }).success).toBe(false);
+  });
+
   it('rejects current > max in a resource pool', () => {
     expect(
       CombatantSchema.safeParse({
