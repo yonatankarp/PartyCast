@@ -24,6 +24,11 @@ export type SrdConditionId = (typeof SRD_CONDITION_IDS)[number];
 // homebrew conditions are first-class. Reference validity (does an
 // `apply-condition` effect or active condition resolve in the catalog?) is
 // enforced by cross-validation at content-load time, not at the schema layer.
+//
+// `description` is required (`.min(1)`) - unlike Persona/Adventure/Node
+// `description` fields which default to '' - because conditions ship as
+// catalog content with tooltip-rendered descriptions; an empty description
+// is always an authoring oversight, not "I'll fill it in later."
 export const ConditionDefinitionSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),

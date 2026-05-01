@@ -10,6 +10,7 @@ import {
   CreatureTypeSchema,
   PartyRoleSchema,
   PositionSchema,
+  SkillSchema,
 } from '../primitives';
 
 describe('DiceExpressionSchema', () => {
@@ -145,6 +146,40 @@ describe('PartyRoleSchema', () => {
   });
   it('rejects unknown role', () => {
     expect(PartyRoleSchema.safeParse('bard').success).toBe(false);
+  });
+});
+
+describe('SkillSchema', () => {
+  it('accepts the 18 SRD skills', () => {
+    const all = [
+      'acrobatics',
+      'animal-handling',
+      'arcana',
+      'athletics',
+      'deception',
+      'history',
+      'insight',
+      'intimidation',
+      'investigation',
+      'medicine',
+      'nature',
+      'perception',
+      'performance',
+      'persuasion',
+      'religion',
+      'sleight-of-hand',
+      'stealth',
+      'survival',
+    ];
+    for (const s of all) expect(SkillSchema.parse(s)).toBe(s);
+  });
+  it.each([
+    ['uppercase', 'Stealth'],
+    ['snake_case', 'animal_handling'],
+    ['homebrew', 'lockpicking'],
+    ['empty', ''],
+  ])('rejects %s (%s)', (_label, s) => {
+    expect(SkillSchema.safeParse(s).success).toBe(false);
   });
 });
 

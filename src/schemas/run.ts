@@ -17,7 +17,7 @@ export const RunEventSchema = z.discriminatedUnion('kind', [
     roundIndex: z.number().int().min(0),
     actorId: z.string().min(1),
     actionId: z.string().min(1),
-    targetIds: z.array(z.string()).default([]),
+    targetIds: z.array(z.string().min(1)).default([]),
   }),
   z.object({
     kind: z.literal('damage-dealt'),
@@ -64,6 +64,8 @@ export const RunEventSchema = z.discriminatedUnion('kind', [
     // Flat union covers all node-kind outcomes: combat (victory/defeat/fled),
     // skill-check (success/failure), branch/rest/loot/travel/custom (completed).
     // The engine knows from nodeId which subset is meaningful for a given event.
+    // Note: this is intentionally a superset of RunResult.outcome (which only
+    // exposes the run-level summary) - do not unify them.
     outcome: z.enum(['victory', 'defeat', 'fled', 'success', 'failure', 'completed']),
   }),
 ]);
@@ -85,13 +87,17 @@ export const RunResultSchema = z
     adventureId: z.string().min(1),
     partyId: z.string().min(1),
     outcome: z.enum(['victory', 'defeat', 'fled', 'completed']),
-    deaths: z.array(z.string()),
+    deaths: z.array(z.string().min(1)),
     nodePath: z.array(z.string().min(1)),
     events: z.array(RunEventSchema),
     finalParty: z.array(CombatantSchema),
     rounds: z.number().int().min(0),
   })
   .superRefine((result, ctx) => {
+    // Sort both sides before comparison: order doesn't matter for the
+    // consistency invariant, only multiset equality. Future check (deferred
+    // to engine layer): every dead combatant should have hp <= 0 in
+    // finalParty, but that requires holding three structures in scope.
     const deathEventIds = result.events
       .filter((e): e is Extract<RunEvent, { kind: 'death' }> => e.kind === 'death')
       .map((e) => e.combatantId)

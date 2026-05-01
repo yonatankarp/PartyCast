@@ -54,15 +54,15 @@ export const AdventureSchema = z
         path: ['startNodeId'],
       });
     }
-    for (const eid of adv.endNodeIds) {
+    adv.endNodeIds.forEach((eid, i) => {
       if (!ids.has(eid)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: `endNodeId "${eid}" not in nodes`,
-          path: ['endNodeIds'],
+          path: ['endNodeIds', i],
         });
       }
-    }
+    });
     adv.edges.forEach((e, i) => {
       if (!ids.has(e.from)) {
         ctx.addIssue({

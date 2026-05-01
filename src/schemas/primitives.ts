@@ -71,3 +71,29 @@ export const PositionSchema = z.object({
   y: z.number().int(),
 });
 export type Position = z.infer<typeof PositionSchema>;
+
+// Closed taxonomy of 5.5e SRD skills. The Skill/Save Resolver engine module
+// owns the canonical lookup table; making this a closed enum at the schema
+// boundary catches casing/whitespace authoring typos and prevents homebrew
+// skill names from silently leaking into engine code.
+export const SkillSchema = z.enum([
+  'acrobatics',
+  'animal-handling',
+  'arcana',
+  'athletics',
+  'deception',
+  'history',
+  'insight',
+  'intimidation',
+  'investigation',
+  'medicine',
+  'nature',
+  'perception',
+  'performance',
+  'persuasion',
+  'religion',
+  'sleight-of-hand',
+  'stealth',
+  'survival',
+]);
+export type Skill = z.infer<typeof SkillSchema>;

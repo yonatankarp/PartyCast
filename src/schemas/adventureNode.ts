@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AbilityScoreSchema, PositionSchema } from './primitives';
+import { AbilityScoreSchema, PositionSchema, SkillSchema } from './primitives';
 
 const TerrainFeatureSchema = z.object({
   kind: z.enum(['cover-half', 'cover-three-quarters', 'cover-full', 'difficult-terrain']),
@@ -37,7 +37,7 @@ const SkillCheckNodeSchema = z.object({
   name: z.string().min(1),
   description: z.string().default(''),
   ability: AbilityScoreSchema,
-  skill: z.string().optional(),
+  skill: SkillSchema.optional(),
   dc: z.number().int().min(1),
   mode: z.enum(['single', 'group', 'contested']),
 });
