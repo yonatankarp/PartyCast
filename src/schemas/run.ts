@@ -86,7 +86,9 @@ export const RunResultSchema = z
     seed: z.string().min(1),
     adventureId: z.string().min(1),
     partyId: z.string().min(1),
-    outcome: z.enum(['victory', 'defeat', 'fled', 'completed']),
+    // 'stuck' = combat failed to converge within the engine's round cap.
+    // Monte Carlo aggregation should treat this as a balance signal, not a defeat.
+    outcome: z.enum(['victory', 'defeat', 'fled', 'completed', 'stuck']),
     deaths: z.array(z.string().min(1)),
     nodePath: z.array(z.string().min(1)),
     events: z.array(RunEventSchema),
