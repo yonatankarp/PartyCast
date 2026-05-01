@@ -48,6 +48,18 @@ describe('ActionSchema', () => {
     expect(ActionSchema.safeParse({ ...longsword, tags: ['Healing'] }).success).toBe(false);
   });
 
+  it('rejects an action with duplicate resourceCost keys', () => {
+    expect(
+      ActionSchema.safeParse({
+        ...fireball,
+        resourceCost: [
+          { resource: 'spell-slot-3', amount: 1 },
+          { resource: 'spell-slot-3', amount: 2 },
+        ],
+      }).success,
+    ).toBe(false);
+  });
+
   it('rejects an action with unknown cost kind', () => {
     expect(
       ActionSchema.safeParse({ ...longsword, cost: { kind: 'mega-action' } }).success,

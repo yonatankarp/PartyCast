@@ -50,6 +50,19 @@ export const ActionSchema = z.object({
   cost: ActionCostSchema,
   resourceCost: z
     .array(z.object({ resource: ResourceKeySchema, amount: z.number().int().positive() }))
+    .superRefine((items, ctx) => {
+      const seen = new Set<string>();
+      items.forEach((item, index) => {
+        if (seen.has(item.resource)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `Duplicate resource key "${item.resource}"`,
+            path: [index, 'resource'],
+          });
+        }
+        seen.add(item.resource);
+      });
+    })
     .default([]),
   target: TargetShapeSchema,
   attack: AttackSchema.nullable(),
