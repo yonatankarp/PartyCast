@@ -54,6 +54,19 @@ describe('PartySchema', () => {
     ).toBe(false);
   });
 
+  it('accepts a party with three distinct members', () => {
+    const m1 = { combatant: baseCombatant, persona };
+    const m2 = { combatant: { ...baseCombatant, id: 'pc-2', name: 'Bren' }, persona };
+    const m3 = { combatant: { ...baseCombatant, id: 'pc-3', name: 'Cara' }, persona };
+    expect(
+      PartySchema.parse({
+        id: 'party-1',
+        name: 'Trio',
+        members: [m1, m2, m3],
+      }).members.length,
+    ).toBe(3);
+  });
+
   it('rejects a party with duplicate combatant ids', () => {
     expect(
       PartySchema.safeParse({
