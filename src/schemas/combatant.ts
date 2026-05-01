@@ -5,6 +5,7 @@ import {
   PositionSchema,
   ResourceKeySchema,
   SizeSchema,
+  SkillSchema,
 } from './primitives';
 import { ConditionSchema } from './condition';
 
@@ -20,7 +21,7 @@ const ResourcePoolSchema = z
 
 const ConcentrationSchema = z.object({
   spellId: z.string().min(1),
-  targets: z.array(z.string()),
+  targets: z.array(z.string().min(1)),
 });
 
 const AbilityScoresSchema = z.object({
@@ -58,11 +59,11 @@ export const CombatantSchema = z.object({
   level: z.number().int().min(1).max(20).optional(),
   abilities: AbilityScoresSchema,
   saves: SavesSchema,
-  skills: z.record(z.string(), z.number().int()).default({}),
+  skills: z.record(SkillSchema, z.number().int()).default({}),
   damageResistances: z.array(DamageTypeSchema).default([]),
   damageImmunities: z.array(DamageTypeSchema).default([]),
   damageVulnerabilities: z.array(DamageTypeSchema).default([]),
-  conditionImmunities: z.array(z.string()).default([]),
+  conditionImmunities: z.array(z.string().min(1)).default([]),
   // Resource pools (spell slots, rage uses, channel divinity, hit dice, etc.).
   // PC hit dice live here keyed by die size: 'hit-dice-d6', 'hit-dice-d8', ...
   // Multi-classed PCs have multiple hit-dice entries.
@@ -88,7 +89,7 @@ export const CombatantSchema = z.object({
   concentration: ConcentrationSchema.nullable().default(null),
   // Equipment IDs; resolved against the item catalog when that schema lands
   // (deferred past Phase 1).
-  equipment: z.array(z.string()).default([]),
+  equipment: z.array(z.string().min(1)).default([]),
 })
   .refine((v) => v.hp <= v.maxHp, {
     message: 'hp must be <= maxHp',
