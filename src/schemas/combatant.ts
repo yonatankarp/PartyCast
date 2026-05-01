@@ -2,6 +2,7 @@ import { z } from 'zod';
 import {
   CreatureTypeSchema,
   DamageTypeSchema,
+  PositionSchema,
   ResourceKeySchema,
   SizeSchema,
 } from './primitives';
@@ -16,11 +17,6 @@ const ResourcePoolSchema = z
     message: 'current must be <= max',
     path: ['current'],
   });
-
-const PositionSchema = z.object({
-  x: z.number().int(),
-  y: z.number().int(),
-});
 
 const ConcentrationSchema = z.object({
   spellId: z.string().min(1),
@@ -101,5 +97,4 @@ export const CombatantSchema = z.object({
 export type Combatant = z.infer<typeof CombatantSchema>;
 export type AbilityScores = z.infer<typeof AbilityScoresSchema>;
 export type Saves = z.infer<typeof SavesSchema>;
-export type Position = z.infer<typeof PositionSchema>;
 export type ResourcePool = z.infer<typeof ResourcePoolSchema>;

@@ -1,7 +1,5 @@
 import { z } from 'zod';
-import { AbilityScoreSchema } from './primitives';
-
-const PositionSchema = z.object({ x: z.number().int(), y: z.number().int() });
+import { AbilityScoreSchema, PositionSchema } from './primitives';
 
 const TerrainFeatureSchema = z.object({
   kind: z.enum(['cover-half', 'cover-three-quarters', 'cover-full', 'difficult-terrain']),
