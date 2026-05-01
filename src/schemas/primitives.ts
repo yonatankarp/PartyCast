@@ -8,9 +8,15 @@ export const DiceExpressionSchema = z
   );
 export type DiceExpression = z.infer<typeof DiceExpressionSchema>;
 
+// `tag:` prefix is optional: prefixed forms (`tag:healing`) are persona-matching
+// classifications; bare forms (`weapon-attack`, `dash`) are built-in SRD action
+// categories. Both share the kebab-case shape and live under a single primitive.
 export const TagSchema = z
   .string()
-  .regex(/^tag:[a-z][a-z0-9-]*$/, 'Tags must look like "tag:healing"');
+  .regex(
+    /^(tag:)?[a-z][a-z0-9-]*$/,
+    'Tags must be lowercase kebab-case, optionally prefixed with "tag:"',
+  );
 export type Tag = z.infer<typeof TagSchema>;
 
 export const ResourceKeySchema = z
