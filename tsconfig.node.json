@@ -6,8 +6,8 @@
     "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,
     "strict": true,
-    "outDir": "./dist/.tsbuild",
-    "tsBuildInfoFile": "./dist/.tsbuild/tsconfig.node.tsbuildinfo"
+    "outDir": "./node_modules/.cache/tsbuild",
+    "tsBuildInfoFile": "./node_modules/.cache/tsbuild/tsconfig.node.tsbuildinfo"
   },
   "include": ["vite.config.ts", "vitest.config.ts"]
 }
