@@ -100,4 +100,14 @@ describe('CombatantSchema', () => {
     const { speed: _speed, ...withoutSpeed } = goblin;
     expect(CombatantSchema.safeParse(withoutSpeed).success).toBe(false);
   });
+
+  it('rejects a PC without level', () => {
+    expect(
+      CombatantSchema.safeParse({
+        ...goblin,
+        type: 'pc',
+        id: 'pc-no-level',
+      }).success,
+    ).toBe(false);
+  });
 });

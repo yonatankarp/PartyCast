@@ -67,6 +67,18 @@ const BranchNodeSchema = z.object({
           message: `Branch option weights must sum to 1 (got ${sum})`,
         });
       }
+      const seen = new Map<string, number>();
+      options.forEach((o, i) => {
+        if (seen.has(o.id)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `Duplicate branch option id "${o.id}" at index ${i} (also at ${seen.get(o.id) ?? '?'})`,
+            path: [i, 'id'],
+          });
+        } else {
+          seen.set(o.id, i);
+        }
+      });
     }),
 });
 

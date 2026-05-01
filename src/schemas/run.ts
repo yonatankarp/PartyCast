@@ -94,22 +94,37 @@ export const RunResultSchema = z
     rounds: z.number().int().min(0),
   })
   .superRefine((result, ctx) => {
-    // Sort both sides before comparison: order doesn't matter for the
-    // consistency invariant, only multiset equality. Future check (deferred
-    // to engine layer): every dead combatant should have hp <= 0 in
-    // finalParty, but that requires holding three structures in scope.
+    // Set equality (not multiset / sorted-array). Each combatant can only die
+    // once, so a duplicated id in either list is itself event-stream
+    // corruption. Future check (deferred to engine layer): every dead
+    // combatant should have hp <= 0 in finalParty, but that requires holding
+    // three structures in scope.
     const deathEventIds = result.events
       .filter((e): e is Extract<RunEvent, { kind: 'death' }> => e.kind === 'death')
-      .map((e) => e.combatantId)
-      .sort();
-    const deathsSorted = [...result.deaths].sort();
-    const eq =
-      deathEventIds.length === deathsSorted.length &&
-      deathEventIds.every((id, i) => id === deathsSorted[i]);
-    if (!eq) {
+      .map((e) => e.combatantId);
+    const deathEventSet = new Set(deathEventIds);
+    const deathsSet = new Set(result.deaths);
+    if (deathEventSet.size !== deathEventIds.length) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: `deaths (${deathsSorted.join(',')}) must match the death-kind events (${deathEventIds.join(',')})`,
+        message: 'death events contain duplicate combatantId values',
+        path: ['events'],
+      });
+    }
+    if (deathsSet.size !== result.deaths.length) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'deaths contains duplicate combatantId values',
+        path: ['deaths'],
+      });
+    }
+    const sameSet =
+      deathEventSet.size === deathsSet.size &&
+      [...deathEventSet].every((id) => deathsSet.has(id));
+    if (!sameSet) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `deaths (${result.deaths.join(',')}) must match the death-kind events (${deathEventIds.join(',')})`,
         path: ['deaths'],
       });
     }

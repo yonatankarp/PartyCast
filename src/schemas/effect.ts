@@ -31,7 +31,10 @@ const ResourceCostEffectSchema = z.object({
 
 const MovementEffectSchema = z.object({
   kind: z.literal('movement'),
-  distance: z.number().int(),
+  // Non-negative: movement direction (push/pull/slide) is encoded by the
+  // spell/effect's intent, not the schema sign. The richer push/pull/slide
+  // discriminator lands in V2 (see spec "Open questions for V2").
+  distance: z.number().int().nonnegative(),
   direction: z.enum(['forced', 'free']),
 });
 

@@ -56,6 +56,9 @@ describe('TagSchema', () => {
     ['contains-space', 'tag:has space'],
     ['leading-digit', '1-bad'],
     ['empty', ''],
+    ['trailing-dash', 'tag:foo-'],
+    ['consecutive-dashes', 'tag:foo--bar'],
+    ['bare-trailing-dash', 'foo-'],
   ])('rejects %s (%s)', (_label, s) => {
     expect(TagSchema.safeParse(s).success).toBe(false);
   });
@@ -73,6 +76,8 @@ describe('ResourceKeySchema', () => {
     ['leading-digit', '1-leading-digit'],
     ['contains-space', 'has space'],
     ['empty', ''],
+    ['trailing-dash', 'resource-'],
+    ['consecutive-dashes', 'spell--slot'],
   ])('rejects %s (%s)', (_label, s) => {
     expect(ResourceKeySchema.safeParse(s).success).toBe(false);
   });
@@ -90,6 +95,8 @@ describe('RuleTagSchema', () => {
     ['leading-digit', '1-rule'],
     ['contains-space', 'has space'],
     ['empty', ''],
+    ['trailing-dash', 'rule-'],
+    ['consecutive-dashes', 'attack--rolls'],
   ])('rejects %s (%s)', (_label, s) => {
     expect(RuleTagSchema.safeParse(s).success).toBe(false);
   });

@@ -65,4 +65,10 @@ describe('EffectSchema', () => {
       EffectSchema.safeParse({ kind: 'damage', amount: 'not-dice', damageType: 'fire' }).success,
     ).toBe(false);
   });
+
+  it('rejects movement with negative distance', () => {
+    expect(
+      EffectSchema.safeParse({ kind: 'movement', distance: -10, direction: 'forced' }).success,
+    ).toBe(false);
+  });
 });

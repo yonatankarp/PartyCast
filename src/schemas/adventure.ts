@@ -63,6 +63,7 @@ export const AdventureSchema = z
         });
       }
     });
+    const nodeById = new Map(adv.nodes.map((n) => [n.id, n]));
     adv.edges.forEach((e, i) => {
       if (!ids.has(e.from)) {
         ctx.addIssue({
@@ -77,6 +78,42 @@ export const AdventureSchema = z
           message: `edge[${i}].to "${e.to}" not in nodes`,
           path: ['edges', i, 'to'],
         });
+      }
+      // Each transition condition kind requires a compatible source node:
+      // on-outcome only fires from combat, on-skill-result only from
+      // skill-check, on-branch-option only from branch (and the optionId
+      // must exist on that branch). `always` is valid from any source.
+      const fromNode = nodeById.get(e.from);
+      if (!fromNode) return;
+      if (e.condition.kind === 'on-outcome' && fromNode.kind !== 'combat') {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `on-outcome condition requires a combat source node (got "${fromNode.kind}")`,
+          path: ['edges', i, 'condition', 'kind'],
+        });
+      }
+      if (e.condition.kind === 'on-skill-result' && fromNode.kind !== 'skill-check') {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `on-skill-result condition requires a skill-check source node (got "${fromNode.kind}")`,
+          path: ['edges', i, 'condition', 'kind'],
+        });
+      }
+      if (e.condition.kind === 'on-branch-option') {
+        const { optionId } = e.condition;
+        if (fromNode.kind !== 'branch') {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `on-branch-option condition requires a branch source node (got "${fromNode.kind}")`,
+            path: ['edges', i, 'condition', 'kind'],
+          });
+        } else if (!fromNode.options.some((o) => o.id === optionId)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `Unknown branch option "${optionId}" for source node "${e.from}"`,
+            path: ['edges', i, 'condition', 'optionId'],
+          });
+        }
       }
     });
   });

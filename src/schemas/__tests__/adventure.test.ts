@@ -60,7 +60,39 @@ describe('AdventureSchema', () => {
 
   it('accepts edges with always / on-outcome / on-branch-option / on-skill-result conditions', () => {
     const a = {
-      ...phandalin,
+      id: 'multi-cond',
+      name: 'Multi-condition',
+      description: '',
+      startNodeId: 'goblin-ambush',
+      endNodeIds: ['phandalin-arrived'],
+      nodes: [
+        {
+          id: 'goblin-ambush',
+          kind: 'combat',
+          name: 'Ambush',
+          monsters: [{ combatantTemplateId: 'goblin', count: 4 }],
+          partyStartPositions: [{ x: 0, y: 0 }],
+          terrain: { width: 20, height: 10, features: [] },
+        },
+        {
+          id: 'fork',
+          kind: 'branch',
+          name: 'Fork',
+          options: [
+            { id: 'fight', label: 'Fight', weight: 0.7 },
+            { id: 'flee', label: 'Flee', weight: 0.3 },
+          ],
+        },
+        {
+          id: 'spot',
+          kind: 'skill-check',
+          name: 'Spot',
+          ability: 'wis',
+          dc: 12,
+          mode: 'single',
+        },
+        { id: 'phandalin-arrived', kind: 'rest', name: 'Inn', restKind: 'long' },
+      ],
       edges: [
         { from: 'goblin-ambush', to: 'phandalin-arrived', condition: { kind: 'always' } },
         {
@@ -69,18 +101,63 @@ describe('AdventureSchema', () => {
           condition: { kind: 'on-outcome', outcome: 'victory' },
         },
         {
-          from: 'goblin-ambush',
+          from: 'fork',
           to: 'phandalin-arrived',
           condition: { kind: 'on-branch-option', optionId: 'fight' },
         },
         {
-          from: 'goblin-ambush',
+          from: 'spot',
           to: 'phandalin-arrived',
           condition: { kind: 'on-skill-result', result: 'success' },
         },
       ],
     };
     expect(AdventureSchema.parse(a).edges.length).toBe(4);
+  });
+
+  it('rejects on-outcome edge from non-combat source', () => {
+    expect(
+      AdventureSchema.safeParse({
+        ...phandalin,
+        edges: [
+          {
+            from: 'phandalin-arrived',
+            to: 'phandalin-arrived',
+            condition: { kind: 'on-outcome', outcome: 'victory' },
+          },
+        ],
+      }).success,
+    ).toBe(false);
+  });
+
+  it('rejects on-branch-option with unknown optionId', () => {
+    expect(
+      AdventureSchema.safeParse({
+        id: 'bad-option',
+        name: 'Bad Option',
+        startNodeId: 'fork',
+        endNodeIds: ['phandalin-arrived'],
+        nodes: [
+          {
+            id: 'fork',
+            kind: 'branch',
+            name: 'Fork',
+            options: [
+              { id: 'fight', label: 'Fight', weight: 0.5 },
+              { id: 'flee', label: 'Flee', weight: 0.5 },
+            ],
+          },
+          { id: 'phandalin-arrived', kind: 'rest', name: 'Inn', restKind: 'long' },
+        ],
+        edges: [
+          {
+            from: 'fork',
+            to: 'phandalin-arrived',
+            condition: { kind: 'on-branch-option', optionId: 'parley' },
+          },
+        ],
+      }).success,
+    ).toBe(false);
   });
 
   it('rejects an adventure with duplicate node ids', () => {
