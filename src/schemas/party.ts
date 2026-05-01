@@ -15,16 +15,17 @@ export const PartySchema = z
     members: z.array(PartyMemberSchema).min(1),
   })
   .superRefine((party, ctx) => {
-    const ids = new Set<string>();
+    const seen = new Map<string, number>();
     party.members.forEach((m, i) => {
-      if (ids.has(m.combatant.id)) {
+      if (seen.has(m.combatant.id)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: `duplicate combatant id "${m.combatant.id}"`,
+          message: `Duplicate combatant id "${m.combatant.id}" at index ${i} (also at ${seen.get(m.combatant.id) ?? '?'})`,
           path: ['members', i, 'combatant', 'id'],
         });
+      } else {
+        seen.set(m.combatant.id, i);
       }
-      ids.add(m.combatant.id);
     });
   });
 export type Party = z.infer<typeof PartySchema>;
