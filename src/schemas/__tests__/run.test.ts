@@ -90,6 +90,54 @@ describe('RunResultSchema', () => {
       }).success,
     ).toBe(false);
   });
+
+  it('accepts outcome="completed" for non-combat end nodes', () => {
+    expect(
+      RunResultSchema.parse({
+        runId: 'run-0001',
+        seed: 'master:1',
+        adventureId: 'phandalin-mini',
+        partyId: 'party-1',
+        outcome: 'completed',
+        deaths: [],
+        nodePath: ['rest-1'],
+        events: [],
+        finalParty: [],
+        rounds: 0,
+      }).outcome,
+    ).toBe('completed');
+  });
+
+  it('rejects when deaths and death-events disagree', () => {
+    expect(
+      RunResultSchema.safeParse({
+        runId: 'run-0001',
+        seed: 'master:1',
+        adventureId: 'phandalin-mini',
+        partyId: 'party-1',
+        outcome: 'victory',
+        deaths: ['goblin-1'],
+        nodePath: ['goblin-ambush'],
+        events: [],
+        finalParty: [],
+        rounds: 3,
+      }).success,
+    ).toBe(false);
+  });
+
+  it('rejects dice-roll events with malformed expressions', () => {
+    expect(
+      RunEventSchema.safeParse({
+        kind: 'dice-roll',
+        roundIndex: 1,
+        actorId: 'pc-anya',
+        purpose: 'attack',
+        expression: 'asdf',
+        rolls: [10],
+        total: 10,
+      }).success,
+    ).toBe(false);
+  });
 });
 
 describe('RunStateSchema', () => {
@@ -97,10 +145,22 @@ describe('RunStateSchema', () => {
     expect(
       RunStateSchema.parse({
         runId: 'run-0001',
+        seed: 'master:1',
         currentNodeId: 'goblin-ambush',
         roundIndex: 3,
         partyState: [],
       }),
     ).toMatchObject({ runId: 'run-0001' });
+  });
+
+  it('rejects a snapshot without seed', () => {
+    expect(
+      RunStateSchema.safeParse({
+        runId: 'run-0001',
+        currentNodeId: 'goblin-ambush',
+        roundIndex: 3,
+        partyState: [],
+      }).success,
+    ).toBe(false);
   });
 });
