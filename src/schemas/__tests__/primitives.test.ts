@@ -34,18 +34,25 @@ describe('DiceExpressionSchema', () => {
 });
 
 describe('TagSchema', () => {
-  it.each(['tag:healing', 'tag:aoe-damage', 'tag:single-target', 'tag:control-1'])(
-    'accepts %s',
-    (s) => {
-      expect(TagSchema.parse(s)).toBe(s);
-    },
-  );
   it.each([
-    ['no-prefix', 'healing'],
-    ['empty-body', 'tag:'],
-    ['uppercase', 'tag:Healing'],
+    'tag:healing',
+    'tag:aoe-damage',
+    'tag:single-target',
+    'tag:control-1',
+    'weapon-attack',
+    'dash',
+    'disengage',
+  ])('accepts %s', (s) => {
+    expect(TagSchema.parse(s)).toBe(s);
+  });
+  it.each([
+    ['empty-body-after-prefix', 'tag:'],
+    ['uppercase-after-prefix', 'tag:Healing'],
+    ['uppercase-bare', 'Healing'],
     ['leading-underscore', 'tag:_under'],
     ['contains-space', 'tag:has space'],
+    ['leading-digit', '1-bad'],
+    ['empty', ''],
   ])('rejects %s (%s)', (_label, s) => {
     expect(TagSchema.safeParse(s).success).toBe(false);
   });
