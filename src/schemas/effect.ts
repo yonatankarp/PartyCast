@@ -47,6 +47,10 @@ export interface SaveOrSuckEffect {
   ability: z.infer<typeof AbilityScoreSchema>;
   dc: number;
   onFail: Effect;
+  // `| undefined` is required because tsconfig has exactOptionalPropertyTypes;
+  // Zod's `.optional()` produces `T | undefined`, and the assignment
+  // `SaveOrSuckEffectSchema: z.ZodType<SaveOrSuckEffect>` only typechecks if
+  // the interface admits the same shape.
   onSuccess?: Effect | undefined;
 }
 
@@ -69,6 +73,12 @@ const SaveOrSuckEffectSchema: z.ZodType<SaveOrSuckEffect> = z.lazy(() =>
   }),
 );
 
+// Uses z.union not z.discriminatedUnion because the latter doesn't compose
+// with z.lazy() recursion in Zod 3 (save-or-suck's onFail/onSuccess reference
+// Effect recursively). Trade-off: error messages aren't discriminant-aware
+// ("no union member matched" rather than "kind=damage, damageType missing").
+// Revisit if Zod 4 lifts the restriction, or add a superRefine if error
+// quality becomes a real UX problem.
 export const EffectSchema: z.ZodType<Effect> = z.lazy(() =>
   z.union([
     DamageEffectSchema,
