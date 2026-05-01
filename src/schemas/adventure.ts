@@ -1,6 +1,10 @@
 import { z } from 'zod';
 import { AdventureNodeSchema } from './adventureNode';
 
+// `on-skill-result` collapses group-check thresholds and contested-check
+// margins to a binary success/failure for V1. Richer outcome types
+// (degree-of-success, margin) are deferred to whenever a real authoring
+// case needs them.
 const TransitionConditionSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('always') }),
   z.object({ kind: z.literal('on-outcome'), outcome: z.enum(['victory', 'defeat', 'fled']) }),
@@ -26,7 +30,22 @@ export const AdventureSchema = z
     nodes: z.array(AdventureNodeSchema).min(1),
     edges: z.array(EdgeSchema).default([]),
   })
+  // Cross-checks run only after all field-level validation passes (Zod gates
+  // superRefine on field success). Authors fixing malformed nodes will see
+  // referential errors on the next parse.
   .superRefine((adv, ctx) => {
+    const seen = new Map<string, number>();
+    adv.nodes.forEach((n, i) => {
+      if (seen.has(n.id)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Duplicate node id "${n.id}" at index ${i} (also at ${seen.get(n.id) ?? '?'})`,
+          path: ['nodes', i, 'id'],
+        });
+      } else {
+        seen.set(n.id, i);
+      }
+    });
     const ids = new Set(adv.nodes.map((n) => n.id));
     if (!ids.has(adv.startNodeId)) {
       ctx.addIssue({

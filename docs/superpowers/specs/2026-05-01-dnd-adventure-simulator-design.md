@@ -128,7 +128,7 @@ This is intentionally a *simple priority list*, not a DSL. A richer expression l
 
 ## Adventure graph — node semantics
 
-- **Combat** — encounter on a grid. Place monsters, set party start positions, terrain. Engine runs combat to resolution. Outcome = victory / TPK / fled. Resources deducted from party state.
+- **Combat** — encounter on a grid. Place monsters, set party start positions, terrain. Engine runs combat to resolution. Outcome = victory / defeat / fled, where "defeat" covers TPK and any other party-loses outcome (surrender, capture). Resources deducted from party state.
 - **SkillCheck** — single or group ability check. DC and ability specified. Personas decide who attempts (or the author marks specific PCs). Outcome routes to different transitions.
 - **Branch** — explicit narrative choice. Each option has a "preferred by personas matching X" predicate; the party's collective persona decides. Author can also weight options statically.
 - **Rest** — short or long. Resources recover per 5.5e rules.
