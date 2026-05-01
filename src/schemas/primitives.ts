@@ -2,7 +2,10 @@ import { z } from 'zod';
 
 export const DiceExpressionSchema = z
   .string()
-  .regex(/^\d+d\d+([+-]\d+)?$/, 'Must be a dice expression like "1d20", "3d6+5", "2d8-1"');
+  .regex(
+    /^[1-9]\d*d(4|6|8|10|12|20|100)([+-]\d+)?$/,
+    'Must be a dice expression using d4/d6/d8/d10/d12/d20/d100 like "1d20", "3d6+5", "2d8-1"',
+  );
 export type DiceExpression = z.infer<typeof DiceExpressionSchema>;
 
 export const TagSchema = z
