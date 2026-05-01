@@ -91,6 +91,23 @@ describe('RunResultSchema', () => {
     ).toBe(false);
   });
 
+  it('accepts outcome="stuck" for runs that hit the engine round cap', () => {
+    expect(
+      RunResultSchema.parse({
+        runId: 'run-stuck',
+        seed: 'master:1',
+        adventureId: 'adv-1',
+        partyId: 'party-1',
+        outcome: 'stuck',
+        deaths: [],
+        nodePath: ['encounter-1'],
+        events: [],
+        finalParty: [],
+        rounds: 200,
+      }).outcome,
+    ).toBe('stuck');
+  });
+
   it('accepts outcome="completed" for non-combat end nodes', () => {
     expect(
       RunResultSchema.parse({
